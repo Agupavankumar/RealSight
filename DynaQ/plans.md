@@ -30,6 +30,14 @@ This plan breaks down the work required to accomplish the In-House Ad and Survey
   - [ ] Sends event data to backend with project/ad context.
 - [ ] Set up initial unit tests for components and hooks.
 
+### Frontend-Backend Integration
+- [ ] Define API contracts for ad metadata and event tracking (request/response, error handling).
+- [ ] Implement API client module in SDK to communicate with backend endpoints.
+- [ ] Integrate `<AdContainer />` and `useInteractionTracker()` with backend APIs.
+- [ ] Handle loading, error, and success states in SDK components.
+- [ ] Mock backend endpoints for frontend development/testing.
+- [ ] Add integration tests for frontend-backend flows.
+
 ---
 
 ## Milestone 2: Survey Integration
@@ -43,6 +51,14 @@ This plan breaks down the work required to accomplish the In-House Ad and Survey
   - [ ] Evaluates rules to trigger survey on button click event.
 - [ ] Set up backend endpoints for survey config and response.
 - [ ] Add unit tests for survey components and hooks.
+
+### Frontend-Backend Integration
+- [ ] Define API contracts for survey config and response submission.
+- [ ] Implement API client module for survey-related endpoints in SDK.
+- [ ] Integrate `<SurveyPopup />` and `useSurveyTrigger()` with backend APIs.
+- [ ] Handle loading, error, and success states in survey components.
+- [ ] Mock backend endpoints for survey flows during frontend development/testing.
+- [ ] Add integration tests for survey frontend-backend flows.
 
 ---
 
@@ -79,6 +95,14 @@ This plan breaks down the work required to accomplish the In-House Ad and Survey
   - [ ] One-to-many relationship with ads
   - [ ] One-to-many relationship with surveys
   - [ ] One-to-many relationship with metrics
+
+### Frontend-Backend Integration
+- [ ] Define API contracts for project CRUD, asset management, and metrics endpoints.
+- [ ] Implement API client module in Admin Dashboard for project, ad, survey, and metrics endpoints.
+- [ ] Integrate `<ProjectDashboard />` and related UI with backend APIs.
+- [ ] Handle loading, error, and success states in admin dashboard UI.
+- [ ] Mock backend endpoints for dashboard development/testing.
+- [ ] Add integration tests for admin dashboard frontend-backend flows.
 
 ---
 
