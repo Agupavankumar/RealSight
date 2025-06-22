@@ -9,6 +9,8 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
+  background-color: #f8f9fa; /* Final fallback color */
   color: white;
 }
 
@@ -67,15 +69,34 @@
   align-items: center;
   gap: 8px;
   transition: background-color 0.2s;
+  outline: none;
+  box-shadow: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: none;
+  text-decoration: none;
 }
 
 .ad-text-section button:hover {
   background-color: #1d4ed8;
+  background-image: none;
+}
+
+.ad-text-section button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.5);
+}
+
+.ad-text-section button:active {
+  background-color: #1e40af;
+  transform: translateY(1px);
 }
 
 .ad-text-section button svg {
   width: 16px;
   height: 16px;
+  fill: currentColor;
 }
 
 .ad-brand {
@@ -100,4 +121,76 @@
   margin-top: 24px;
   position: relative;
   z-index: 2;
+}
+
+/* Loading state styles */
+.ad-container.loading {
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+}
+
+.loading-skeleton {
+  width: 100%;
+}
+
+.skeleton-title {
+  height: 24px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.skeleton-content {
+  height: 16px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  width: 80%;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Error state styles */
+.ad-container.error {
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+}
+
+.error-message {
+  color: #e53e3e;
+  font-size: 14px;
+  text-align: center;
+  margin: 20px 0;
+  padding: 12px;
+  background: #fed7d7;
+  border-radius: 6px;
+  border: 1px solid #feb2b2;
+}
+
+/* Ensure the hidden image doesn't affect layout */
+.ad-container img[style*="display: none"] {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+}
+
+/* CSS-only fallback using multiple backgrounds */
+.ad-container.with-fallback {
+  background-image: 
+    url('../assets/ad-image.webp'), /* Fallback image */
+    var(--dynamic-bg-image); /* Dynamic image from backend */
+  background-size: cover, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
 } 
