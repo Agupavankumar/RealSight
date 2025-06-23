@@ -12,8 +12,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
-              .AllowAnyHeader()
+		policy.AllowAnyOrigin()
+			  .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
@@ -21,6 +21,7 @@ builder.Services.AddCors(options =>
 // Register services
 builder.Services.AddScoped<IAdService, AdService>();
 builder.Services.AddScoped<ITrackingService, TrackingService>();
+builder.Services.AddScoped<ISurveyService, SurveyService>();
 
 var app = builder.Build();
 

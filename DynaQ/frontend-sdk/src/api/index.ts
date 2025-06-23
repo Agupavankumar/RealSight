@@ -1,6 +1,7 @@
 import { createApiClient, createDefaultApiClient, type ApiClient, type ApiClientConfig } from './ApiClient';
 import { createAdService, type AdService } from './AdService';
 import { createTrackingService, type TrackingService } from './TrackingService';
+import { SurveyService, type SurveyConfig, type SurveyResponse, type SubmitSurveyRequest, type SurveyQuestion, QuestionType } from './SurveyService';
 
 // Default configuration
 const DEFAULT_CONFIG: ApiClientConfig = {
@@ -14,6 +15,7 @@ let globalApiClient: ApiClient | null = null;
 // Service instances
 let adService: AdService | null = null;
 let trackingService: TrackingService | null = null;
+let surveyService: SurveyService | null = null;
 
 /**
  * Initialize the API client with configuration
@@ -25,6 +27,7 @@ export function initializeApiClient(config: Partial<ApiClientConfig> = {}): void
   // Reset service instances
   adService = null;
   trackingService = null;
+  surveyService = null;
 }
 
 /**
@@ -57,6 +60,16 @@ export function getTrackingService(): TrackingService {
   return trackingService;
 }
 
+/**
+ * Get the SurveyService instance
+ */
+export function getSurveyService(): SurveyService {
+  if (!surveyService) {
+    surveyService = new SurveyService(getApiClient());
+  }
+  return surveyService;
+}
+
 // Export the factory functions and types for advanced usage
 export { 
   createApiClient, 
@@ -70,4 +83,6 @@ export type {
   ApiClientConfig 
 } from './ApiClient';
 export type { AdMetadata, AdService } from './AdService';
-export type { TrackingEventRequest, TrackingEventResponse, TrackingService } from './TrackingService'; 
+export type { TrackingEventRequest, TrackingEventResponse, TrackingService } from './TrackingService';
+export type { SurveyConfig, SurveyResponse, SubmitSurveyRequest, SurveyService, SurveyQuestion } from './SurveyService';
+export { QuestionType } from './SurveyService'; 
