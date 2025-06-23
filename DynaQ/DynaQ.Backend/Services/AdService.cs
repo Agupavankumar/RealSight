@@ -18,7 +18,7 @@ namespace DynaQ.Backend.Services
                     Title = "Special Offer",
                     Content = "Get 20% off on your next purchase!",
                     BrandName = "TechCorp",
-                    ImageUrl = "https://via.placeholder.com/300x200",
+                    ImageUrl = "https://t4.ftcdn.net/jpg/04/88/06/55/360_F_488065538_8c8VgyQjc5EroxagDRDAFKEEjSukjUge.jpg",
                     ClickUrl = "https://example.com/offer",
                     IsActive = true
                 },
@@ -29,7 +29,7 @@ namespace DynaQ.Backend.Services
                     Title = "New Product Launch",
                     Content = "Check out our latest product line",
                     BrandName = "TechCorp",
-                    ImageUrl = "https://via.placeholder.com/300x200",
+                    ImageUrl = "https://www.shutterstock.com/image-vector/cashback-icon-credit-card-isolated-600nw-2485671009.jpg",
                     ClickUrl = "https://example.com/new-product",
                     IsActive = true
                 },
