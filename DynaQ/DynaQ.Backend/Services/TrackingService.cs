@@ -1,21 +1,21 @@
+using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.DocumentModel;
+using Amazon.DynamoDBv2.Model;
 using DynaQ.Backend.Models;
 
 namespace DynaQ.Backend.Services
 {
     public class TrackingService : ITrackingService
     {
-        private readonly List<TrackingEvent> _trackedEvents;
+        private readonly IDynamoDBContext _dbContext;
 
-        public TrackingService()
+        public TrackingService(IDynamoDBContext dbContext)
         {
-            _trackedEvents = new List<TrackingEvent>();
+            _dbContext = dbContext;
         }
 
         public async Task<TrackingEventResponse> TrackEventAsync(TrackingEventRequest eventData)
         {
-            // Simulate async operation
-            await Task.Delay(50);
-
             try
             {
                 // Validate required fields
@@ -65,15 +65,14 @@ namespace DynaQ.Backend.Services
                     ProjectId = eventData.ProjectId,
                     AdId = eventData.AdId,
                     SurveyId = eventData.SurveyId,
-                    Metadata = eventData.Metadata,
                     SessionId = eventData.SessionId,
                     Timestamp = DateTime.UtcNow
                 };
 
-                // Store the event (in a real app, this would go to a database)
-                _trackedEvents.Add(trackingEvent);
+                // Store the event in DynamoDB
+                await _dbContext.SaveAsync(trackingEvent);
 
-                // Log the event (in a real app, this might go to a logging service)
+                // Log the event
                 Console.WriteLine($"Tracked Event: {trackingEvent.EventType} for Project: {trackingEvent.ProjectId} at {trackingEvent.Timestamp}");
 
                 return new TrackingEventResponse
@@ -94,32 +93,99 @@ namespace DynaQ.Backend.Services
 
         public async Task<IEnumerable<TrackingEvent>> GetEventsByProjectAsync(string projectId, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            // Simulate async operation
-            await Task.Delay(100);
+            // Use the GSI to query events by ProjectId
+            var config = new DynamoDBOperationConfig
+            {
+                IndexName = "ProjectId-Timestamp-index"
+            };
 
-            var query = _trackedEvents.Where(e => e.ProjectId == projectId);
+            // Create a QueryRequest for the GSI
+            var request = new QueryRequest
+            {
+                TableName = "TrackingEvents", // Assuming this is the table name that matches the DynamoDBTable attribute
+                IndexName = "ProjectId-Timestamp-index",
+                KeyConditionExpression = "ProjectId = :projectId",
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                {
+                    { ":projectId", new AttributeValue { S = projectId } }
+                }
+            };
 
+            // Use the recommended QueryAsync overload
+            var queryResults = _dbContext.QueryAsync<TrackingEvent>(projectId, config);
+            var events = await queryResults.GetRemainingAsync();
+
+            // Apply date filters if provided
             if (fromDate.HasValue)
             {
-                query = query.Where(e => e.Timestamp >= fromDate.Value);
+                events = events.Where(e => e.Timestamp >= fromDate.Value).ToList();
             }
 
             if (toDate.HasValue)
             {
-                query = query.Where(e => e.Timestamp <= toDate.Value);
+                events = events.Where(e => e.Timestamp <= toDate.Value).ToList();
             }
 
-            return query.OrderByDescending(e => e.Timestamp);
+            return events.OrderByDescending(e => e.Timestamp);
         }
 
         public async Task<IEnumerable<TrackingEvent>> GetEventsByAdAsync(string adId, string projectId)
         {
-            // Simulate async operation
-            await Task.Delay(100);
+            // Use a scan operation with a condition on AdId and ProjectId
+            var conditions = new List<ScanCondition>
+            {
+                new ScanCondition("AdId", ScanOperator.Equal, adId),
+                new ScanCondition("ProjectId", ScanOperator.Equal, projectId)
+            };
 
-            return _trackedEvents
-                .Where(e => e.AdId == adId && e.ProjectId == projectId)
-                .OrderByDescending(e => e.Timestamp);
+            var scanResults = _dbContext.ScanAsync<TrackingEvent>(conditions);
+            var events = await scanResults.GetRemainingAsync();
+
+            return events.OrderByDescending(e => e.Timestamp);
+        }
+
+        public async Task<TrackingEvent?> GetEventByIdAsync(string eventId)
+        {
+            try
+            {
+                return await _dbContext.LoadAsync<TrackingEvent>(eventId);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public async Task<bool> DeleteEventAsync(string eventId)
+        {
+            try
+            {
+                var existingEvent = await _dbContext.LoadAsync<TrackingEvent>(eventId);
+                if (existingEvent == null)
+                    return false;
+
+                await _dbContext.DeleteAsync<TrackingEvent>(eventId);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<IEnumerable<TrackingEvent>> GetEventsBySurveyAsync(string surveyId, string projectId)
+        {
+            // Use a scan operation with a condition on SurveyId and ProjectId
+            var conditions = new List<ScanCondition>
+            {
+                new ScanCondition("SurveyId", ScanOperator.Equal, surveyId),
+                new ScanCondition("ProjectId", ScanOperator.Equal, projectId)
+            };
+
+            var scanResults = _dbContext.ScanAsync<TrackingEvent>(conditions);
+            var events = await scanResults.GetRemainingAsync();
+
+            return events.OrderByDescending(e => e.Timestamp);
         }
     }
-} 
+}
