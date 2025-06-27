@@ -1,22 +1,29 @@
 using System.ComponentModel.DataAnnotations;
+using Amazon.DynamoDBv2.DataModel;
 
 namespace DynaQ.Backend.Models
 {
+    [DynamoDBTable("Surveys")]
     public class Survey
     {
-        public string Id { get; set; } = string.Empty;
+        [DynamoDBHashKey]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        
         public string Title { get; set; } = string.Empty;
         public string? Description { get; set; }
+        
+        [DynamoDBRangeKey]
         public string ProjectId { get; set; } = string.Empty;
+        
         public List<SurveyQuestion> Questions { get; set; } = new();
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public bool IsActive { get; set; } = true;
     }
 
     public class SurveyQuestion
     {
-        public string Id { get; set; } = string.Empty;
+        public string Id { get; set; } = Guid.NewGuid().ToString();
         public string Question { get; set; } = string.Empty;
         public QuestionType Type { get; set; }
         public bool Required { get; set; } = false;
@@ -33,13 +40,23 @@ namespace DynaQ.Backend.Models
         Boolean
     }
 
+    [DynamoDBTable("SurveyResponses")]
     public class SurveyResponse
     {
-        public string Id { get; set; } = string.Empty;
+        [DynamoDBHashKey]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        
+        [DynamoDBRangeKey]
+        [DynamoDBGlobalSecondaryIndexRangeKey("ProjectId-SurveyId-index")]
         public string SurveyId { get; set; } = string.Empty;
+        
+        [DynamoDBGlobalSecondaryIndexHashKey("ProjectId-SurveyId-index")]
         public string ProjectId { get; set; } = string.Empty;
+        
         public List<QuestionResponse> Responses { get; set; } = new();
-        public DateTime SubmittedAt { get; set; }
+        
+        public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
+        
         public string? SessionId { get; set; }
     }
 
@@ -82,4 +99,4 @@ namespace DynaQ.Backend.Models
         public List<QuestionResponse> Responses { get; set; } = new();
         public string? SessionId { get; set; }
     }
-} 
+}

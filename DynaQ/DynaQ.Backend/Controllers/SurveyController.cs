@@ -69,7 +69,7 @@ namespace DynaQ.Backend.Controllers
         /// </summary>
         [HttpPost]
         public async Task<ActionResult<Survey>> CreateSurvey([FromBody] CreateSurveyRequest request)
-        {
+        { 
             try
             {
                 if (!ModelState.IsValid)

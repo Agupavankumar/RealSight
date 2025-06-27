@@ -1,104 +1,47 @@
+using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.DocumentModel;
 using DynaQ.Backend.Models;
 
 namespace DynaQ.Backend.Services
 {
     public class SurveyService : ISurveyService
     {
-        private readonly List<Survey> _surveys = new();
-        private readonly List<SurveyResponse> _responses = new();
+        private readonly IDynamoDBContext _dbContext;
 
-        public SurveyService()
+        public SurveyService(IDynamoDBContext dbContext)
         {
-            // Initialize with mock data
-            InitializeMockData();
-        }
-
-        private void InitializeMockData()
-        {
-            var mockSurvey = new Survey
-            {
-                Id = "survey-001",
-                Title = "Customer Satisfaction Survey",
-                Description = "Help us improve our services by providing your feedback.",
-                ProjectId = "project-001",
-                Questions = new List<SurveyQuestion>
-                {
-                    new SurveyQuestion
-                    {
-                        Id = "q1",
-                        Question = "How satisfied are you with our service?",
-                        Type = QuestionType.Rating,
-                        Required = true,
-                        MaxRating = 5,
-                        Order = 1
-                    },
-                    new SurveyQuestion
-                    {
-                        Id = "q2",
-                        Question = "What is your primary reason for using our service?",
-                        Type = QuestionType.MultipleChoice,
-                        Required = true,
-                        Options = new List<string> { "Work", "Personal", "Education", "Other" },
-                        Order = 2
-                    },
-                    new SurveyQuestion
-                    {
-                        Id = "q3",
-                        Question = "Would you recommend our service to others?",
-                        Type = QuestionType.Boolean,
-                        Required = true,
-                        Order = 3
-                    },
-                    new SurveyQuestion
-                    {
-                        Id = "q4",
-                        Question = "Please share any additional comments or suggestions:",
-                        Type = QuestionType.Text,
-                        Required = false,
-                        Order = 4
-                    }
-                },
-                CreatedAt = DateTime.UtcNow.AddDays(-7),
-                UpdatedAt = DateTime.UtcNow,
-                IsActive = true
-            };
-
-            _surveys.Add(mockSurvey);
+            _dbContext = dbContext;
         }
 
         public async Task<Survey?> GetSurveyAsync(string surveyId, string projectId)
         {
-            await Task.Delay(100); // Simulate async operation
-            
-            return _surveys.FirstOrDefault(s => 
-                s.Id == surveyId && 
-                s.ProjectId == projectId && 
-                s.IsActive);
+            var survey = await _dbContext.LoadAsync<Survey>(surveyId, projectId);
+            if (survey == null || !survey.IsActive) 
+                return null;
+            return survey;
         }
 
         public async Task<List<Survey>> GetSurveysByProjectAsync(string projectId)
         {
-            await Task.Delay(100); // Simulate async operation
+            var conditions = new List<ScanCondition>
+            {
+                new ScanCondition("ProjectId", ScanOperator.Equal, projectId),
+                new ScanCondition("IsActive", ScanOperator.Equal, true)
+            };
             
-            return _surveys
-                .Where(s => s.ProjectId == projectId && s.IsActive)
-                .OrderBy(s => s.CreatedAt)
-                .ToList();
+            var surveys = await _dbContext.ScanAsync<Survey>(conditions).GetRemainingAsync();
+            return surveys.OrderByDescending(s => s.CreatedAt).ToList();
         }
 
         public async Task<Survey> CreateSurveyAsync(CreateSurveyRequest request)
         {
-            await Task.Delay(100); // Simulate async operation
-            
             var survey = new Survey
             {
-                Id = Guid.NewGuid().ToString(),
                 Title = request.Title,
                 Description = request.Description,
                 ProjectId = request.ProjectId,
                 Questions = request.Questions.Select((q, index) => new SurveyQuestion
                 {
-                    Id = Guid.NewGuid().ToString(),
                     Question = q.Question,
                     Type = q.Type,
                     Required = q.Required,
@@ -111,24 +54,22 @@ namespace DynaQ.Backend.Services
                 IsActive = true
             };
 
-            _surveys.Add(survey);
+            await _dbContext.SaveAsync(survey);
             return survey;
         }
 
         public async Task<SurveyResponse> SubmitSurveyResponseAsync(SubmitSurveyResponseRequest request)
         {
-            await Task.Delay(100); // Simulate async operation
-            
-            // Validate that the survey exists and belongs to the project
+            // Validate that the survey exists
             var survey = await GetSurveyAsync(request.SurveyId, request.ProjectId);
             if (survey == null)
             {
                 throw new InvalidOperationException("Survey not found or does not belong to the specified project.");
             }
 
+            // Create and save the response
             var response = new SurveyResponse
             {
-                Id = Guid.NewGuid().ToString(),
                 SurveyId = request.SurveyId,
                 ProjectId = request.ProjectId,
                 Responses = request.Responses,
@@ -136,36 +77,41 @@ namespace DynaQ.Backend.Services
                 SessionId = request.SessionId
             };
 
-            _responses.Add(response);
+            await _dbContext.SaveAsync(response);
             return response;
         }
 
         public async Task<List<SurveyResponse>> GetSurveyResponsesAsync(string surveyId, string projectId)
         {
-            await Task.Delay(100); // Simulate async operation
-            
-            return _responses
-                .Where(r => r.SurveyId == surveyId && r.ProjectId == projectId)
-                .OrderByDescending(r => r.SubmittedAt)
-                .ToList();
+            // First, verify that the survey exists
+            var survey = await GetSurveyAsync(surveyId, projectId);
+            if (survey == null)
+            {
+                return new List<SurveyResponse>();
+            }
+
+            // Query using the GSI
+            var queryConfig = new DynamoDBOperationConfig
+            {
+                IndexName = "ProjectId-SurveyId-index"
+            };
+
+            var responses = await _dbContext.QueryAsync<SurveyResponse>(projectId, QueryOperator.Equal, new[] { surveyId }, queryConfig).GetRemainingAsync();
+            return responses.OrderByDescending(r => r.SubmittedAt).ToList();
         }
 
         public async Task<bool> DeleteSurveyAsync(string surveyId, string projectId)
         {
-            await Task.Delay(100); // Simulate async operation
+            var survey = await _dbContext.LoadAsync<Survey>(surveyId, projectId);
+            if (survey == null) 
+                return false;
             
-            var survey = _surveys.FirstOrDefault(s => 
-                s.Id == surveyId && 
-                s.ProjectId == projectId);
+            // Soft delete - just mark as inactive
+            survey.IsActive = false;
+            survey.UpdatedAt = DateTime.UtcNow;
             
-            if (survey != null)
-            {
-                survey.IsActive = false;
-                survey.UpdatedAt = DateTime.UtcNow;
-                return true;
-            }
-            
-            return false;
+            await _dbContext.SaveAsync(survey);
+            return true;
         }
     }
-} 
+}

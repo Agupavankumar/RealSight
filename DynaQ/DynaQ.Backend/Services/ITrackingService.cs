@@ -7,5 +7,8 @@ namespace DynaQ.Backend.Services
         Task<TrackingEventResponse> TrackEventAsync(TrackingEventRequest eventData);
         Task<IEnumerable<TrackingEvent>> GetEventsByProjectAsync(string projectId, DateTime? fromDate = null, DateTime? toDate = null);
         Task<IEnumerable<TrackingEvent>> GetEventsByAdAsync(string adId, string projectId);
+        Task<TrackingEvent?> GetEventByIdAsync(string eventId);
+        Task<bool> DeleteEventAsync(string eventId);
+        Task<IEnumerable<TrackingEvent>> GetEventsBySurveyAsync(string surveyId, string projectId);
     }
 } 

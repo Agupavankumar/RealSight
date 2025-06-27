@@ -1,9 +1,16 @@
+using Amazon.DynamoDBv2.DataModel;
+
 namespace DynaQ.Backend.Models
 {
+    [DynamoDBTable("Ads")]
     public class Ad
     {
-        public string Id { get; set; } = string.Empty;
+        [DynamoDBHashKey]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+
+        [DynamoDBRangeKey]
         public string ProjectId { get; set; } = string.Empty;
+
         public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public string BrandName { get; set; } = string.Empty;
@@ -25,4 +32,4 @@ namespace DynaQ.Backend.Models
         public string? ClickUrl { get; set; }
         public bool IsActive { get; set; }
     }
-} 
+}
