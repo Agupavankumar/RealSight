@@ -20,6 +20,7 @@ export interface TrackingService {
   trackEvent: (eventData: TrackingEventRequest) => Promise<ApiResponse<TrackingEventResponse>>;
   getEventsByProject: (projectId: string, fromDate?: Date, toDate?: Date) => Promise<ApiResponse<any[]>>;
   getEventsByAd: (adId: string, projectId: string) => Promise<ApiResponse<any[]>>;
+  getEventsBySurvey: (surveyId: string, projectId: string) => Promise<ApiResponse<any[]>>;
 }
 
 export function createTrackingService(baseUrl?: string): TrackingService {
@@ -27,11 +28,11 @@ export function createTrackingService(baseUrl?: string): TrackingService {
   
   return {
     async trackEvent(eventData: TrackingEventRequest): Promise<ApiResponse<TrackingEventResponse>> {
-      return apiClient.post<TrackingEventResponse>('/api/tracking/events', eventData);
+      return apiClient.post<TrackingEventResponse>('/api/Tracking/events', eventData);
     },
 
     async getEventsByProject(projectId: string, fromDate?: Date, toDate?: Date): Promise<ApiResponse<any[]>> {
-      let endpoint = `/api/tracking/events/project/${projectId}`;
+      let endpoint = `/api/Tracking/events/project/${projectId}`;
       const params = new URLSearchParams();
       
       if (fromDate) {
@@ -49,7 +50,11 @@ export function createTrackingService(baseUrl?: string): TrackingService {
     },
 
     async getEventsByAd(adId: string, projectId: string): Promise<ApiResponse<any[]>> {
-      return apiClient.get<any[]>(`/api/tracking/events/ad/${adId}?projectId=${projectId}`);
+      return apiClient.get<any[]>(`/api/Tracking/events/ad/${adId}?projectId=${projectId}`);
+    },
+
+    async getEventsBySurvey(surveyId: string, projectId: string): Promise<ApiResponse<any[]>> {
+      return apiClient.get<any[]>(`/api/Tracking/events/survey/${surveyId}?projectId=${projectId}`);
     },
   };
 } 
