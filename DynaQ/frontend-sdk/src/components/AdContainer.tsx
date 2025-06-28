@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useInteractionTracker, useAdData } from '../hooks';
 import fallbackImage from '../assets/ad-image.webp';
 import './AdContainer.css';
@@ -15,10 +15,25 @@ export const AdContainer: React.FC<AdContainerProps> = ({
   const { trackEvent } = useInteractionTracker();
   const { adData, loading, error } = useAdData(adId);
   const [imageError, setImageError] = useState(false);
+  const [impressionTracked, setImpressionTracked] = useState(false);
+
+  // Track ad impression when ad loads successfully
+  useEffect(() => {
+    if (adData && !loading && !error && !impressionTracked) {
+      trackEvent('ad_impression', { 
+        eventId: `${adId}_impression_${Date.now()}`,
+        adId: adId 
+      });
+      setImpressionTracked(true);
+    }
+  }, [adData, loading, error, impressionTracked, adId, trackEvent]);
 
   const handleButtonClick = () => {
     if (adData) {
-      trackEvent('ad_click', { eventId: adId, adId: adId });
+      trackEvent('ad_click', { 
+        eventId: `${adId}_click_${Date.now()}`,
+        adId: adId 
+      });
       if (onButtonClick) {
         onButtonClick(adId);
       }

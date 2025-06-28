@@ -5,7 +5,7 @@ import './App.css';
 function App() {
   return (
     <div className="App">
-      <Dashboard projectId="default-project" />
+      <Dashboard  />
     </div>
   );
 }
