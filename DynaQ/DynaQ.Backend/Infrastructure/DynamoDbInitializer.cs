@@ -39,6 +39,12 @@ namespace DynaQ.Backend.Infrastructure
             {
                 await CreateTrackingEventsTableAsync(dynamoDb);
             }
+            
+            // Check and create Instructions table if it doesn't exist
+            if (!existingTables.TableNames.Contains("Instructions"))
+            {
+                await CreateInstructionsTableAsync(dynamoDb);
+            }
         }
         
         private static async Task CreateAdsTableAsync(IAmazonDynamoDB dynamoDb)
@@ -340,6 +346,46 @@ namespace DynaQ.Backend.Infrastructure
             catch (Exception ex)
             {
                 Console.WriteLine($"Error creating TrackingEvents table: {ex.Message}");
+                throw;
+            }
+        }
+        
+        private static async Task CreateInstructionsTableAsync(IAmazonDynamoDB dynamoDb)
+        {
+            var request = new CreateTableRequest
+            {
+                TableName = "Instructions",
+                AttributeDefinitions = new List<AttributeDefinition>
+                {
+                    new AttributeDefinition
+                    {
+                        AttributeName = "Id",
+                        AttributeType = "S" // String type
+                    }
+                },
+                KeySchema = new List<KeySchemaElement>
+                {
+                    new KeySchemaElement
+                    {
+                        AttributeName = "Id",
+                        KeyType = "HASH" // Partition key
+                    }
+                },
+                ProvisionedThroughput = new ProvisionedThroughput
+                {
+                    ReadCapacityUnits = 5,
+                    WriteCapacityUnits = 5
+                }
+            };
+            
+            try
+            {
+                var response = await dynamoDb.CreateTableAsync(request);
+                Console.WriteLine($"Created table {response.TableDescription.TableName}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating Instructions table: {ex.Message}");
                 throw;
             }
         }
