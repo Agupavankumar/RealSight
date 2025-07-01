@@ -1,0 +1,46 @@
+@baseUrl = http://localhost:5000
+
+### Get all instructions
+GET {{baseUrl}}/api/instructions
+Accept: application/json
+
+### Get a specific instruction by ID
+GET {{baseUrl}}/api/instructions/instruction-id
+Accept: application/json
+
+### Get all published instructions
+GET {{baseUrl}}/api/instructions/published
+Accept: application/json
+
+### Create a new instruction
+POST {{baseUrl}}/api/instructions
+Content-Type: application/json
+Accept: application/json
+
+{
+  "type": "notification",
+  "action": "appendHTML",
+  "selector": "#content-container",
+  "content": "<div class='notification'>Welcome to our site!</div>",
+  "publish": true
+}
+
+### Update an instruction
+PUT {{baseUrl}}/api/instructions/instruction-id
+Content-Type: application/json
+Accept: application/json
+
+{
+  "action": "replaceHTML",
+  "selector": "#content-container",
+  "content": "<div class='notification'>Updated content!</div>",
+  "publish": true
+}
+
+### Delete an instruction
+DELETE {{baseUrl}}/api/instructions/instruction-id
+Accept: application/json
+
+### Delete all instructions
+DELETE {{baseUrl}}/api/instructions/all
+Accept: application/json

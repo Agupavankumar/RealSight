@@ -24,7 +24,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "DynaQ API",
         Version = "v1",
-        Description = "API for managing projects, ads, surveys, and tracking events",
+        Description = "API for managing projects, ads, surveys, tracking events, and instructions",
         Contact = new OpenApiContact
         {
             Name = "DynaQ Team"
@@ -89,6 +89,7 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IAdService, AdService>();
 builder.Services.AddScoped<ITrackingService, TrackingService>();
 builder.Services.AddScoped<ISurveyService, SurveyService>();
+builder.Services.AddScoped<IInstructionService, InstructionService>();
 
 var app = builder.Build();
 
