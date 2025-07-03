@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api'; // Adjust based on your backend URL
-const USE_MOCK_DATA = true; // Set to false when backend is ready
+const API_BASE_URL = 'http://localhost:5008/api'; // Backend URL from launchSettings.json
+const USE_MOCK_DATA = false; // Set to false to use real backend API
 
 export interface TrackingEvent {
   id: string;
@@ -17,6 +17,56 @@ export interface TrackingEvent {
   sessionId?: string;
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+}
+
+export interface Ad {
+  id: string;
+  projectId: string;
+  title: string;
+  content: string;
+  brandName: string;
+  imageUrl?: string;
+  clickUrl: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Survey {
+  id: string;
+  projectId: string;
+  title: string;
+  description: string;
+  questions: SurveyQuestion[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SurveyQuestion {
+  id: string;
+  question: string;
+  type: 'text' | 'multiple_choice' | 'rating' | 'boolean';
+  required?: boolean;
+  options?: string[];
+  maxRating?: number;
+  order?: number;
+}
+
 export interface AnalyticsData {
   totalEvents: number;
   adClicks: number;
@@ -26,6 +76,23 @@ export interface AnalyticsData {
   distinctUsers: number;
   eventsOverTime: { date: string; count: number }[];
   topAds: { adId: string; clicks: number }[];
+}
+
+// Add interfaces to match backend request structure
+export interface CreateSurveyRequest {
+  title: string;
+  description?: string;
+  projectId: string;
+  questions: CreateQuestionRequest[];
+}
+
+export interface CreateQuestionRequest {
+  question: string;
+  type: number; // Enum value: 0=Text, 1=MultipleChoice, 2=Rating, 3=Boolean
+  required: boolean;
+  options?: string[];
+  maxRating?: number;
+  order: number;
 }
 
 class ApiService {
@@ -107,70 +174,135 @@ class ApiService {
     return response.data;
   }
 
-  async getAnalytics(projectId: string, fromDate?: Date, toDate?: Date): Promise<AnalyticsData> {
+  async getEventsBySurvey(surveyId: string, projectId: string): Promise<TrackingEvent[]> {
     if (USE_MOCK_DATA) {
-      // Return mock data for UI testing
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+      // Return mock survey events for UI testing
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      return {
-        totalEvents: 2847,
-        adClicks: 342,
-        adImpressions: 1523,
-        surveyImpressions: 456,
-        surveySubmissions: 128,
-        distinctUsers: 1205,
-        eventsOverTime: [
-          { date: '2024-01-15', count: 45 },
-          { date: '2024-01-16', count: 52 },
-          { date: '2024-01-17', count: 38 },
-          { date: '2024-01-18', count: 67 },
-          { date: '2024-01-19', count: 83 },
-          { date: '2024-01-20', count: 74 },
-          { date: '2024-01-21', count: 91 },
-          { date: '2024-01-22', count: 105 },
-          { date: '2024-01-23', count: 87 },
-          { date: '2024-01-24', count: 98 },
-          { date: '2024-01-25', count: 112 },
-          { date: '2024-01-26', count: 89 },
-          { date: '2024-01-27', count: 76 },
-          { date: '2024-01-28', count: 94 },
-        ],
-        topAds: [
-          { adId: 'ad-001', clicks: 89 },
-          { adId: 'ad-002', clicks: 67 },
-          { adId: 'ad-003', clicks: 54 },
-          { adId: 'ad-004', clicks: 43 },
-          { adId: 'ad-005', clicks: 35 },
-          { adId: 'ad-006', clicks: 28 },
-          { adId: 'ad-007', clicks: 21 },
-          { adId: 'ad-008', clicks: 15 },
-        ],
-      };
+      return [
+        {
+          id: '1',
+          eventType: 'survey_impression',
+          eventId: 'impression-001',
+          projectId,
+          surveyId,
+          timestamp: '2024-01-28T10:30:00Z',
+          sessionId: 'session-123',
+        },
+      ];
     }
 
-    const params = new URLSearchParams();
-    if (fromDate) params.append('fromDate', fromDate.toISOString());
-    if (toDate) params.append('toDate', toDate.toISOString());
-
     const response = await this.axiosInstance.get(
-      `/tracking/analytics/${projectId}?${params.toString()}`
+      `/tracking/events/survey/${surveyId}?projectId=${projectId}`
     );
+    return response.data;
+  }
+
+  async getAnalytics(projectId: string, fromDate?: Date, toDate?: Date): Promise<AnalyticsData> {
+    // For now, return mock data since we need to process raw tracking events
+    // In a real implementation, you would either:
+    // 1. Create a dedicated analytics endpoint in the backend
+    // 2. Process the raw tracking events here to generate analytics
     
-    // Map backend response to frontend interface
-    const backendData = response.data;
     return {
-      totalEvents: backendData.totalEvents,
-      adClicks: backendData.adClicks,
-      adImpressions: backendData.adImpressions,
-      surveyImpressions: backendData.surveyImpressions,
-      surveySubmissions: backendData.surveySubmissions,
-      distinctUsers: backendData.distinctUsers,
-      eventsOverTime: backendData.eventsOverTime,
-      topAds: backendData.topAds,
+      totalEvents: 0,
+      adClicks: 0,
+      adImpressions: 0,
+      surveyImpressions: 0,
+      surveySubmissions: 0,
+      distinctUsers: 0,
+      eventsOverTime: [],
+      topAds: [],
     };
   }
 
+  async getAllProjects(): Promise<ProjectSummary[]> {
+    const response = await this.axiosInstance.get('/Projects');
+    return response.data;
+  }
 
+  async getProject(projectId: string): Promise<Project | null> {
+    try {
+      const response = await this.axiosInstance.get(`/Projects/${projectId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching project:', error);
+      return null;
+    }
+  }
+
+  async createProject(projectData: { name: string; description: string }): Promise<Project> {
+    const response = await this.axiosInstance.post('/Projects', projectData);
+    return response.data;
+  }
+
+  async getAdsByProject(projectId: string): Promise<Ad[]> {
+    const response = await this.axiosInstance.get(`/Ads/project/${projectId}`);
+    return response.data;
+  }
+
+  async createAd(adData: Omit<Ad, 'id' | 'createdAt' | 'updatedAt'>): Promise<Ad> {
+    const payload = {
+      title: adData.title,
+      content: adData.content,
+      brandName: adData.brandName,
+      imageUrl: adData.imageUrl,
+      clickUrl: adData.clickUrl,
+      projectId: adData.projectId,
+      isActive: adData.isActive
+    };
+    
+    const response = await this.axiosInstance.post('/Ads', payload);
+    return response.data;
+  }
+
+  async deleteAd(adId: string, projectId: string): Promise<void> {
+    await this.axiosInstance.delete(`/Ads/${adId}?projectId=${projectId}`);
+  }
+
+  async getSurveysByProject(projectId: string): Promise<Survey[]> {
+    const response = await this.axiosInstance.get(`/Survey/project/${projectId}`);
+    return response.data;
+  }
+
+  async createSurvey(surveyData: Omit<Survey, 'id' | 'createdAt' | 'updatedAt'>): Promise<Survey> {
+    // Transform the survey data to match backend expectations
+    const payload: CreateSurveyRequest = {
+      title: surveyData.title,
+      description: surveyData.description,
+      projectId: surveyData.projectId,
+      questions: surveyData.questions.map((q, index): CreateQuestionRequest => ({
+        question: q.question,
+        type: q.type === 'text' ? 0 : 
+              q.type === 'multiple_choice' ? 1 : 
+              q.type === 'rating' ? 2 : 
+              3, // boolean
+        required: q.required || false,
+        options: q.options,
+        maxRating: q.maxRating,
+        order: q.order || index
+      }))
+    };
+    
+    const response = await this.axiosInstance.post('/Survey', payload);
+    
+    // Transform the response back to our interface
+    const created = response.data;
+    return {
+      ...created,
+      questions: created.questions.map((q: any) => ({
+        ...q,
+        type: q.type === 0 ? 'text' : 
+              q.type === 1 ? 'multiple_choice' : 
+              q.type === 2 ? 'rating' : 
+              'boolean'
+      }))
+    };
+  }
+
+  async deleteSurvey(surveyId: string, projectId: string): Promise<void> {
+    await this.axiosInstance.delete(`/Survey/${surveyId}?projectId=${projectId}`);
+  }
 }
 
 export const apiService = new ApiService(); 

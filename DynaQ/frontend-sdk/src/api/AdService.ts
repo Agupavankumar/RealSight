@@ -21,11 +21,11 @@ export function createAdService(baseUrl?: string): AdService {
   
   return {
     async getAdMetadata(adId: string, projectId: string): Promise<ApiResponse<AdMetadata>> {
-      return apiClient.get<AdMetadata>(`/api/ads/${adId}?projectId=${projectId}`);
+      return apiClient.get<AdMetadata>(`/api/Ads/${adId}?projectId=${projectId}`);
     },
 
     async getAdsByProject(projectId: string): Promise<ApiResponse<AdMetadata[]>> {
-      return apiClient.get<AdMetadata[]>(`/api/ads/project/${projectId}`);
+      return apiClient.get<AdMetadata[]>(`/api/Ads/project/${projectId}`);
     },
   };
 } 

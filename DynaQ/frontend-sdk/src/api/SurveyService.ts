@@ -52,7 +52,7 @@ export class SurveyService {
    * Get survey configuration by ID and project
    */
   async getSurvey(surveyId: string, projectId: string): Promise<SurveyConfig> {
-    const response = await this.apiClient.get<SurveyConfig>(`/api/survey/${surveyId}?projectId=${projectId}`);
+    const response = await this.apiClient.get<SurveyConfig>(`/api/Survey/${surveyId}?projectId=${projectId}`);
     if (!response.success || !response.data) {
       throw new Error(response.error || 'Failed to fetch survey');
     }

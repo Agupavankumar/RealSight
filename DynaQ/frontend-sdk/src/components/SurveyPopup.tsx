@@ -48,7 +48,10 @@ export const SurveyPopup: React.FC<SurveyPopupProps> = ({
       setSurveyConfig(config);
       
       // Track survey view
-      trackEvent('survey_impression', { eventId: surveyId }, finalProjectId);
+      trackEvent('survey_impression', { 
+        eventId: `${surveyId}_impression_${Date.now()}`,
+        surveyId: surveyId 
+      }, finalProjectId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load survey');
     } finally {
@@ -82,7 +85,10 @@ export const SurveyPopup: React.FC<SurveyPopupProps> = ({
       });
       
       // Track survey completion
-      trackEvent('survey_submit', { eventId: surveyId }, finalProjectId);
+      trackEvent('survey_submit', { 
+        eventId: `${surveyId}_submit_${Date.now()}`,
+        surveyId: surveyId 
+      }, finalProjectId);
       
       onComplete?.(surveyResponses);
       onClose();

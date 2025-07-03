@@ -15,10 +15,10 @@ function App() {
   };
 
   return (
-    <ProjectProvider initialProjectId="project-001">
+    <ProjectProvider initialProjectId="d0d38694-e848-443d-bbe3-880ccaed7428">
       <div className="App">
         <h1>DynaQ SDK Demo</h1>
-        <AdContainer adId="ad-001" onButtonClick={handleAdClick} />
+        <AdContainer adId="6f08250c-ebc7-42cd-88c2-b4d21ab8b7d7" onButtonClick={handleAdClick} />
         
         <div style={{ marginTop: '20px' }}>
           <button 
@@ -39,7 +39,7 @@ function App() {
         </div>
 
         <SurveyPopup
-          surveyId="survey-001"
+          surveyId="5f76820a-e74c-411a-92e3-6b273bd07651"
           visible={showSurvey}
           onClose={() => setShowSurvey(false)}
           onComplete={handleSurveyComplete}
